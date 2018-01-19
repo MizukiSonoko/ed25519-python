@@ -3,7 +3,8 @@
 from ctypes import *
 import base64
 
-libed2559 = cdll.LoadLibrary('lib/ed25519/libed25519.dylib')
+# ToDo change find & load
+libed2559 = cdll.LoadLibrary('lib/ed25519/libed25519.so')
 
 def generate():
     public_key = POINTER(c_ubyte)((c_ubyte * 32)())
