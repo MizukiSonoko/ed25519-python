@@ -1,0 +1,2 @@
+include lib/ed25519/libed25519.*
+
