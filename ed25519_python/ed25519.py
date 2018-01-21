@@ -1,10 +1,12 @@
 #! /usr/bin/python
 
 from ctypes import *
+import ctypes
+import ctypes.util
 import base64
 
 # ToDo change find & load
-libed2559 = cdll.LoadLibrary('lib/ed25519/libed25519.so')
+libed2559 = cdll.LoadLibrary(ctypes.util.find_library('ed25519'))
 
 def generate():
     public_key = POINTER(c_ubyte)((c_ubyte * 32)())
