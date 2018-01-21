@@ -31,6 +31,9 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
+        # Git submodule
+        subprocess.check_call(['git','submodule','update'])
+
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cmake_args = ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
                       "-DHASH=sha3_brainhub",
@@ -39,15 +42,6 @@ class CMakeBuild(build_ext):
                       "-DTESTING=OFF"]
 
         build_args = []
-
-        if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-            if sys.maxsize > 2**32:
-                cmake_args += ['-A', 'x64']
-            build_args += ['--', '/m']
-        else:
-            cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j2']
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
@@ -59,7 +53,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="ed25519-python",
-    version="0.0.1",
+    version="0.0.2",
     author="Sonoko Mizuki",
     author_email="sonoko@mizuki.io",
     ext_modules=[CMakeExtension("ed25519-python","lib/ed25519")],
