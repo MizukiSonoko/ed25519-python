@@ -4,6 +4,7 @@ from ctypes import *
 import ctypes
 import ctypes.util
 import base64
+import binascii
 
 # ToDo change find & load
 libed2559 = cdll.LoadLibrary(ctypes.util.find_library('ed25519'))
@@ -49,6 +50,32 @@ def verify(message, signature, public):
         len(message),
         POINTER(c_ubyte)((c_ubyte * len(base64.b64decode(public))).from_buffer_copy(base64.b64decode(public))),
     )
+
+def sha3_256(message):
+    res = POINTER(c_ubyte)((c_ubyte * 64)())
+    libed2559.ed25519_verify.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long]
+    libed2559.sha256(
+        res,
+        POINTER(c_ubyte)((c_ubyte * len(message)).from_buffer_copy(message)),
+        len(message)
+    )
+    siglist = []
+    for i in range(64):
+        siglist.append(res[i])
+    return binascii.hexlify(bytes(siglist))
+
+def sha3_512(message):
+    res = POINTER(c_ubyte)((c_ubyte * 128)())
+    libed2559.ed25519_verify.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long]
+    libed2559.sha256(
+        res,
+        POINTER(c_ubyte)((c_ubyte * len(message)).from_buffer_copy(message)),
+        len(message)
+    )
+    siglist = []
+    for i in range(128):
+        siglist.append(res[i])
+    return binascii.hexlify(bytes(siglist))
 
 if __name__ == "__main__":
     message = b"c0a5cca43b8aa79eb50e3464bc839dd6fd414fae0ddf928ca23dcebf8a8b8dd0"
