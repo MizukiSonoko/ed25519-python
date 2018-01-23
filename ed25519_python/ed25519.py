@@ -1,5 +1,5 @@
 #! /usr/bin/python
-
+import os
 from ctypes import *
 import ctypes
 import ctypes.util
@@ -52,7 +52,7 @@ def verify(message, signature, public):
     )
 
 def sha3_256(message):
-    res = POINTER(c_ubyte)((c_ubyte * 64)())
+    res = POINTER(c_ubyte)((c_ubyte * 32)())
     libed2559.ed25519_verify.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long]
     libed2559.sha256(
         res,
@@ -60,7 +60,7 @@ def sha3_256(message):
         len(message)
     )
     siglist = []
-    for i in range(64):
+    for i in range(32):
         siglist.append(res[i])
     return binascii.hexlify(bytes(siglist))
 
@@ -78,11 +78,43 @@ def sha3_512(message):
     return binascii.hexlify(bytes(siglist))
 
 if __name__ == "__main__":
-    message = b"c0a5cca43b8aa79eb50e3464bc839dd6fd414fae0ddf928ca23dcebf8a8b8dd0"
-    pub, pri = generate()
+    message = bytearray.fromhex("7d4e3eec80026719639ed4dba68916eb94c7a49a053e05c8f9578fe4e5a3d7ea")
+    pub_ = '359f925e4eeecfdd6aa1abc0b79a6a121a5dd63bb612b603247ea4f8ad160156'
+    sig_ = '62fb363de8785e5cee29c64222c7a558ce8b2ca6f7efac1bb2ac2feabfc240ff03e1538afc1a087856a8f7225c0b8ff2bc6471c77ea29290cc5040ee30d55c0c'
+
+    print(1 == verify(
+        message,
+        base64.b64encode(bytearray.fromhex(sig_)).decode(),
+        base64.b64encode(bytearray.fromhex(pub_)).decode()
+    ))
+
+    account_id = "admin@test"
+    #pub, pri = generate()
+
+    with open("{}/.irohac/{}.pub".format(os.environ['HOME'], account_id), "r") as pubKeyFile:
+        publicKey = pubKeyFile.read()
+    with open("{}/.irohac/{}".format(os.environ['HOME'], account_id), "r") as priKeyFile:
+        privateKey = priKeyFile.read()
+    print('pub:{}'.format(publicKey))
+    print('pri:{}'.format(privateKey))
+    pub = base64.b64encode(bytearray.fromhex(publicKey))
+    pri = base64.b64encode(bytearray.fromhex(privateKey))
+
     signatureb = sign(message, pub, pri)
+    print("sig:")
     print(1 == verify(
         message,
         signatureb,
         pub
     ))
+
+    pub, pri = generate()
+    print(message)
+    signatureb = sign(message, pub, pri)
+    print("sig:")
+    print(1 == verify(
+        message,
+        signatureb,
+        pub
+    ))
+
