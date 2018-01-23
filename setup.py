@@ -7,6 +7,11 @@ from distutils.version import LooseVersion
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
 
+
+#python setup.py bdist_wheel
+#twine upload dist/*.whl
+#python setup.py sdist upload
+
 # Cited by https://github.com/pybind/cmake_example/blob/master/setup.py
 
 class CMakeExtension(Extension):
