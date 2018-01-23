@@ -37,7 +37,7 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         # Git submodule
-        subprocess.check_call(['git','submodule','update'])
+        subprocess.check_call(['git','submodule','update','-i'])
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cmake_args = ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
