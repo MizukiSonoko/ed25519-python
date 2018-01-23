@@ -37,7 +37,8 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         # Git submodule
-        subprocess.check_call(['git','submodule','update','-i'])
+        subprocess.check_call(['mkdir','-p','lib/ed25519'])
+        subprocess.check_call(['git','clone','https://github.com/Warchant/ed25519.git','lib/ed25519'])
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cmake_args = ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
@@ -58,7 +59,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="ed25519-python",
-    version="0.0.5",
+    version="0.0.6",
     author="Sonoko Mizuki",
     author_email="sonoko@mizuki.io",
     ext_modules=[CMakeExtension("ed25519-python","lib/ed25519")],
