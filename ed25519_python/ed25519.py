@@ -6,8 +6,18 @@ import ctypes.util
 import base64
 import binascii
 
-# ToDo change find & load
-libed2559 = cdll.LoadLibrary(ctypes.util.find_library('ed25519'))
+# ToDo change use `ctypes.util.find_library`
+libed2559 = None
+try:
+    libed2559 = cdll.LoadLibrary('./libed25519.so')
+except OSError:
+    pass
+try:
+    libed2559 = cdll.LoadLibrary('./libed25519.dylib')
+except OSError:
+    pass
+if not libed2559:
+    print("Library loading failed")
 
 def generate():
     public_key = POINTER(c_ubyte)((c_ubyte * 32)())
