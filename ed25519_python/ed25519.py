@@ -7,13 +7,15 @@ import base64
 import binascii
 
 # ToDo change use `ctypes.util.find_library`
+wd = os.path.dirname(os.path.abspath(__file__))
+# ToDo change use `ctypes.util.find_library`
 libed2559 = None
 try:
-    libed2559 = cdll.LoadLibrary('./libed25519.so')
+    libed2559 = cdll.LoadLibrary('{}/libed25519.so'.format(wd))
 except OSError:
     pass
 try:
-    libed2559 = cdll.LoadLibrary('./libed25519.dylib')
+    libed2559 = cdll.LoadLibrary('{}/libed25519.dylib'.format(wd))
 except OSError:
     pass
 if not libed2559:
