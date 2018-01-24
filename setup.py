@@ -1,7 +1,9 @@
 import os
 import re
+from glob import glob
 import sys
 import platform
+import shutil
 import subprocess
 from distutils.version import LooseVersion
 from setuptools import setup, find_packages, Extension
@@ -37,7 +39,7 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         # Git submodule
-        subprocess.check_call(['mkdir','-p','lib/ed25519'])
+        shutil.rmtree('lib/ed25519')
         subprocess.check_call(['git','clone','https://github.com/Warchant/ed25519.git','lib/ed25519'])
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
@@ -56,10 +58,15 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+
+        # Move shared library to code's directory
+        for f in glob('{}/libed25519*'.format(extdir)):
+            shutil.copyfile(f, '{}/ed25519_python'.format(extdir))
 
 setup(
     name="ed25519-python",
-    version="0.0.6",
+    version="0.0.8",
     author="Sonoko Mizuki",
     author_email="sonoko@mizuki.io",
     ext_modules=[CMakeExtension("ed25519-python","lib/ed25519")],
