@@ -62,7 +62,7 @@ class CMakeBuild(build_ext):
 
         # Move shared library to code's directory
         for f in glob('{}/libed25519*'.format(extdir)):
-            shutil.copyfile(f, '{}/ed25519_python'.format(extdir))
+            shutil.copy(f, '{}/ed25519_python/'.format(extdir))
 
 setup(
     name="ed25519-python",
