@@ -66,8 +66,8 @@ def sign(message, base64_public_key, base64_private_key):
         pointer_of_signature,
         pointer_of_message,
         len(message),
-        pointer_of_private_key,
-        pointer_of_public_key
+        pointer_of_public_key,
+        pointer_of_private_key
     )
     return _encode(signature, length=64)
 
@@ -75,14 +75,13 @@ def verify(message, base64_signature, base64_public_key):
     message, pointer_of_message = _malloc_ubytes_from_bytes(message)
     public_key, pointer_of_public_key = _malloc_ubytes_from_bytes(base64.b64decode(base64_public_key))
     signature, pointer_of_signature = _malloc_ubytes_from_bytes(base64.b64decode(base64_signature))
-
     libed2559.ed25519_verify.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long, POINTER(c_ubyte)]
-    return libed2559.ed25519_verify(
+    return bool(libed2559.ed25519_verify(
             pointer_of_signature,
             pointer_of_message,
         len(message),
         pointer_of_public_key
-    )
+    ))
 
 def sha3_256(message):
     res, pointer_of_res = _malloc_ubytes(32)
