@@ -1,5 +1,6 @@
-#! /usr/bin/python import os
+#! /usr/bin/python 
 from ctypes import *
+import os
 import struct
 import ctypes
 import ctypes.util
@@ -21,11 +22,15 @@ except OSError:
 if not libed2559:
     print("Library loading failed")
 
-def _encode(byte32_string):
-    return base64.b64encode(struct.unpack('<32s', byte32_string)[0])
+
+def _unpack(byte_string, length):
+    return struct.unpack('<{length}s'.format(length=length), byte_string)[0]
+
+def _encode(byte_string, length=32):
+    return base64.b64encode(_unpack(byte_string, length))
 
 def _malloc_ubytes(length):
-    value = (c_ubyte * 32)()
+    value = (c_ubyte * length)()
     pointer_of_value = POINTER(c_ubyte)(value)
     return value, pointer_of_value
 
@@ -50,84 +55,52 @@ def derive_public_key(base64_private_key):
 
 
 def sign(message, base64_public_key, base64_private_key):
+    message, pointer_of_message = _malloc_ubytes_from_bytes(message)
+    private_key, pointer_of_private_key = _malloc_ubytes_from_bytes(base64.b64decode(base64_private_key))
+    public_key, pointer_of_public_key = _malloc_ubytes_from_bytes(base64.b64decode(base64_public_key))
     signature, pointer_of_signature = _malloc_ubytes(64)
+
+
     libed2559.ed25519_sign.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long, POINTER(c_ubyte), POINTER(c_ubyte)]
     libed2559.ed25519_sign(
         pointer_of_signature,
-        _malloc_ubytes_from_bytes(message)[1],
+        pointer_of_message,
         len(message),
-        _malloc_ubytes_from_bytes(base64.b64decode(base64_private_key))[1],
-        _malloc_ubytes_from_bytes(base64.b64decode(base64_public_key))[1]
+        pointer_of_private_key,
+        pointer_of_public_key
     )
-    return _encode(signature)
+    return _encode(signature, length=64)
 
 def verify(message, base64_signature, base64_public_key):
+    message, pointer_of_message = _malloc_ubytes_from_bytes(message)
+    public_key, pointer_of_public_key = _malloc_ubytes_from_bytes(base64.b64decode(base64_public_key))
+    signature, pointer_of_signature = _malloc_ubytes_from_bytes(base64.b64decode(base64_signature))
+
     libed2559.ed25519_verify.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long, POINTER(c_ubyte)]
     return libed2559.ed25519_verify(
-        _malloc_ubytes_from_bytes(base64.b64decode(base64_signature))[1],
-        _malloc_ubytes_from_bytes(message)[1],
+            pointer_of_signature,
+            pointer_of_message,
         len(message),
-        _malloc_ubytes_from_bytes(base64.b64decode(base64_public_key))[1],
+        pointer_of_public_key
     )
 
 def sha3_256(message):
-    res, pointer_of_res = _malloc_ubytes(64)
+    res, pointer_of_res = _malloc_ubytes(32)
     libed2559.ed25519_verify.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long]
     libed2559.sha256(
         pointer_of_res,
         _malloc_ubytes_from_bytes(message)[1],
         len(message)
     )
-    return _encode(res)
+    return _unpack(res, 32)
 
 def sha3_512(message):
-    res, pointer_of_res = _malloc_ubytes(128)
+    res, pointer_of_res = _malloc_ubytes(64)
     libed2559.ed25519_verify.argtypes = [POINTER(c_ubyte), POINTER(c_ubyte), c_long]
     libed2559.sha512(
         pointer_of_res,
         _malloc_ubytes_from_bytes(message)[1],
         len(message)
     )
-    return _encode(res)
-
-message = bytearray.fromhex("7d4e3eec80026719639ed4dba68916eb94c7a49a053e05c8f9578fe4e5a3d7ea")
-pub_ = '359f925e4eeecfdd6aa1abc0b79a6a121a5dd63bb612b603247ea4f8ad160156'
-sig_ = '62fb363de8785e5cee29c64222c7a558ce8b2ca6f7efac1bb2ac2feabfc240ff03e1538afc1a087856a8f7225c0b8ff2bc6471c77ea29290cc5040ee30d55c0c'
-
-print(1 == verify(
-    message,
-    base64.b64encode(bytearray.fromhex(sig_)).decode(),
-    base64.b64encode(bytearray.fromhex(pub_)).decode()
-))
-
-account_id = "admin@test"
-pub, pri = generate()
-
-
-with open("{}/.irohac/{}.pub".format(os.environ['HOME'], account_id), "r") as pubKeyFile:
-    publicKey = pubKeyFile.read()
-with open("{}/.irohac/{}".format(os.environ['HOME'], account_id), "r") as priKeyFile:
-    privateKey = priKeyFile.read()
-print('pub:{}'.format(publicKey))
-print('pri:{}'.format(privateKey))
-pub = base64.b64encode(bytearray.fromhex(publicKey))
-pri = base64.b64encode(bytearray.fromhex(privateKey))
-
-signatureb = sign(message, pub, pri)
-print("sig:")
-print(1 == verify(
-    message,
-    signatureb,
-    pub
-))
-
-pub, pri = generate()
-print(message)
-signatureb = sign(message, pub, pri)
-print("sig:")
-print(1 == verify(
-    message,
-    signatureb,
-    pub
-))
+    return _unpack(res, 64)
 
