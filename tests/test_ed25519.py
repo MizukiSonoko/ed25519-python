@@ -2,6 +2,7 @@ from ed25519_python.ed25519 import generate, derive_public_key, sign, verify, sh
 from base64 import b64decode, b64encode
 import struct
 
+
 def test_generate():
     public_key, private_key = generate()
     assert len(b64decode(public_key)) == 32
@@ -9,9 +10,10 @@ def test_generate():
     print(b64decode(public_key))
     print(b64decode(private_key))
 
+
 def test_derive_public_key():
     public_key, private_key = generate()
-    for i in range(1000):
+    for _ in range(1000):
         assert derive_public_key(private_key) == public_key
 
 
@@ -23,7 +25,7 @@ def test_sign():
     print(b64decode(signature))
     assert len(b64decode(signature)) == 64
 
-    for i in range(1000):
+    for _ in range(1000):
         assert signature == sign(message, public_key, private_key)
 
 
@@ -39,7 +41,6 @@ def test_iroha_verify():
     assert sign(message, public_key, signature)
 
 
-
 def test_verify():
     message = b"deadbeef"
     public_key, private_key = generate()
@@ -48,6 +49,7 @@ def test_verify():
     assert verify(message, signature, public_key)
     assert type(verify(message, signature, public_key)) is bool
     assert verify(message + b'dummy', signature, public_key) is False
+
 
 def test_hash():
     assert len(set([sha3_256(b'deadbeef') for _ in range(10000)])) == 1
