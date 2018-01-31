@@ -1,6 +1,7 @@
 from ed25519_python.ed25519 import generate, derive_public_key, sign, verify, sha3_256, sha3_512
 from base64 import b64decode, b64encode
 import struct
+import binascii
 
 
 def test_generate():
@@ -58,3 +59,13 @@ def test_hash():
     assert len(sha3_512(b'deadbeef')) == 64
     print(sha3_256(b'deadbeef'))
     print(sha3_512(b'deadbeef'))
+
+
+def test_hash_2():
+    #Ref: last page of https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/examples/sha3-256_msg0.pdf
+    assert b'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a' == binascii.hexlify(sha3_256(b''))
+
+    #Ref: last page of https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/examples/sha3-512_msg0.pdf
+    assert b'a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26' == binascii.hexlify(sha3_512(b''))
+
+
