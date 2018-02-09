@@ -17,6 +17,7 @@ git clone https://github.com/MizukiSonoko/ed25519-python.git
 cd ed25519-python
 git submodule update --init --recursive
 python setup.py develop
+pytest
 ```
 
 
