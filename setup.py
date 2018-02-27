@@ -66,7 +66,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="ed25519-python",
-    version="0.0.10",
+    version="1.0.0",
     author="Sonoko Mizuki",
     author_email="sonoko@mizuki.io",
     ext_modules=[CMakeExtension("ed25519-python","lib/ed25519")],
